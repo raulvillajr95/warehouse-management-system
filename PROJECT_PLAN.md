@@ -92,3 +92,34 @@ A deployed application that demonstrates:
 - Relational database design
 - Responsive frontend
 - Production deployment
+
+## User Stories
+
+### Warehouse Manager
+
+As a warehouse manager, I want to:
+
+- Log in securely.
+- View a dashboard with today's warehouse activity.
+- Monitor inventory levels.
+- Identify low-stock items.
+- Search for products by SKU or name.
+- Create and manage customer orders.
+
+### Warehouse Associate
+
+As a warehouse associate, I want to:
+
+- View assigned orders.
+- Update order status (Picking → Packed → Shipped).
+- Search for inventory items.
+
+## Dashboard Metrics
+
+When a warehouse manager logs in, they should immediately see:
+
+- Total Inventory Items
+- Orders Today
+- Low Stock Alerts
+- Pending Orders
+- Recently Updated Orders
