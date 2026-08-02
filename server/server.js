@@ -14,3 +14,11 @@ app.get('/health', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+const prisma = require('./lib/prisma');
+
+app.get('/inventory', async (req, res) => {
+  const items = await prisma.inventoryItem.findMany();
+
+  res.json(items);
+});
