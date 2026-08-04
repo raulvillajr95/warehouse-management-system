@@ -44,3 +44,47 @@ app.post('/inventory', async (req, res) => {
 
   res.status(201).json(item);
 });
+
+app.put('/inventory/:id', async (req, res) => {
+  const { id } = req.params;
+  const { name, sku, quantity, location, minimumQuantity } = req.body;
+
+  const existingItem = await prisma.inventoryItem.findUnique({
+    where: { id },
+  });
+
+  if (!existingItem) {
+    return res.status(404).json({ error: 'Inventory item not found' });
+  }
+
+  const updatedItem = await prisma.inventoryItem.update({
+    where: { id },
+    data: {
+      name: name ?? existingItem.name,
+      sku: sku ?? existingItem.sku,
+      quantity: quantity ?? existingItem.quantity,
+      location: location ?? existingItem.location,
+      minimumQuantity: minimumQuantity ?? existingItem.minimumQuantity,
+    },
+  });
+
+  res.json(updatedItem);
+});
+
+app.delete('/inventory/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const existingItem = await prisma.inventoryItem.findUnique({
+    where: { id },
+  });
+
+  if (!existingItem) {
+    return res.status(404).json({ error: 'Inventory item not found' });
+  }
+
+  await prisma.inventoryItem.delete({
+    where: { id },
+  });
+
+  res.json({ message: 'Inventory item deleted' });
+});
