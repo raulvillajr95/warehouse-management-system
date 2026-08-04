@@ -22,3 +22,25 @@ app.get('/inventory', async (req, res) => {
 
   res.json(items);
 });
+
+app.post('/inventory', async (req, res) => {
+  const { name, sku, quantity, location, minimumQuantity } = req.body;
+
+  if (!name || !sku) {
+    return res.status(400).json({
+      error: 'name and sku are required',
+    });
+  }
+
+  const item = await prisma.inventoryItem.create({
+    data: {
+      name,
+      sku,
+      quantity: quantity ?? 0,
+      location,
+      minimumQuantity: minimumQuantity ?? 0,
+    },
+  });
+
+  res.status(201).json(item);
+});
