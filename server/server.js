@@ -88,3 +88,19 @@ app.delete('/inventory/:id', async (req, res) => {
 
   res.json({ message: 'Inventory item deleted' });
 });
+
+app.get('/inventory/:id', async (req, res) => {
+  const { id } = req.params;
+
+  const item = await prisma.inventoryItem.findUnique({
+    where: { id },
+  });
+
+  if (!item) {
+    return res.status(404).json({
+      error: 'Inventory item not found',
+    });
+  }
+
+  res.json(item);
+});
