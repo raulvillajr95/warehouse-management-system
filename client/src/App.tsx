@@ -11,6 +11,11 @@ interface InventoryItem {
 
 function App() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [name, setName] = useState('');
+  const [sku, setSku] = useState('');
+  const [quantity, setQuantity] = useState(0);
+  const [location, setLocation] = useState('');
+  const [minimumQuantity, setMinimumQuantity] = useState(0);
 
   useEffect(() => {
     fetch('http://localhost:3001/inventory')
@@ -19,9 +24,90 @@ function App() {
       .catch((err) => console.error(err));
   }, []);
 
+  const addInventoryItem = async () => {
+    const response = await fetch('http://localhost:3001/inventory', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        name,
+        sku,
+        quantity,
+        location,
+        minimumQuantity,
+      }),
+    });
+
+    if (!response.ok) {
+      alert('Failed to add inventory item.');
+      return;
+    }
+
+    const newItem = await response.json();
+
+    setInventory([...inventory, newItem]);
+
+    setName('');
+    setSku('');
+    setQuantity(0);
+    setLocation('');
+    setMinimumQuantity(0);
+  };
+
   return (
     <div style={{ padding: '2rem', fontFamily: 'Arial' }}>
       <h1>Warehouse Management System</h1>
+
+      <div style={{ marginBottom: '20px' }}>
+        <h2>Add Inventory Item</h2>
+
+        <input
+          type="text"
+          placeholder="Name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+
+        <input
+          type="text"
+          placeholder="SKU"
+          value={sku}
+          onChange={(e) => setSku(e.target.value)}
+        />
+
+        <input
+          type="number"
+          placeholder="Quantity"
+          value={quantity}
+          onChange={(e) => setQuantity(Number(e.target.value))}
+        />
+
+        <input
+          type="text"
+          placeholder="Location"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+        />
+
+        <input
+          type="number"
+          placeholder="Minimum Quantity"
+          value={minimumQuantity}
+          onChange={(e) => setMinimumQuantity(Number(e.target.value))}
+        />
+
+        <button
+          onClick={addInventoryItem}
+          style={{
+            marginLeft: '10px',
+            padding: '8px 16px',
+            cursor: 'pointer',
+          }}
+        >
+          Add Item
+        </button>
+      </div>
 
       {inventory.length === 0 ? (
         <p>No inventory items found.</p>
