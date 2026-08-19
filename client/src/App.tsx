@@ -55,6 +55,29 @@ function App() {
     setMinimumQuantity(0);
   };
 
+  const deleteInventoryItem = async (id: string) => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete this inventory item?',
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    const response = await fetch(`http://localhost:3001/inventory/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      alert('Failed to delete inventory item.');
+      return;
+    }
+
+    setInventory((currentInventory) =>
+      currentInventory.filter((item) => item.id !== id),
+    );
+  };
+
   return (
     <div style={{ padding: '2rem', fontFamily: 'Arial' }}>
       <h1>Warehouse Management System</h1>
@@ -131,6 +154,9 @@ function App() {
               <th style={{ border: '1px solid black', padding: '8px' }}>
                 Location
               </th>
+              <th style={{ border: '1px solid black', padding: '8px' }}>
+                Actions
+              </th>
             </tr>
           </thead>
 
@@ -160,6 +186,22 @@ function App() {
 
                 <td style={{ border: '1px solid black', padding: '8px' }}>
                   {item.location}
+                </td>
+
+                <td style={{ border: '1px solid black', padding: '8px' }}>
+                  <button
+                    onClick={() => deleteInventoryItem(item.id)}
+                    style={{
+                      backgroundColor: '#dc3545',
+                      color: 'white',
+                      border: 'none',
+                      padding: '6px 12px',
+                      cursor: 'pointer',
+                      borderRadius: '4px',
+                    }}
+                  >
+                    Delete
+                  </button>
                 </td>
               </tr>
             ))}
