@@ -16,6 +16,8 @@ function App() {
   const [quantity, setQuantity] = useState(0);
   const [location, setLocation] = useState('');
   const [minimumQuantity, setMinimumQuantity] = useState(0);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingQuantity, setEditingQuantity] = useState(0);
 
   useEffect(() => {
     fetch('http://localhost:3001/inventory')
@@ -76,6 +78,31 @@ function App() {
     setInventory((currentInventory) =>
       currentInventory.filter((item) => item.id !== id),
     );
+  };
+
+  const saveInventoryItem = async (id: string) => {
+    const response = await fetch(`http://localhost:3001/inventory/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        quantity: editingQuantity,
+      }),
+    });
+
+    if (!response.ok) {
+      alert('Failed to update inventory item.');
+      return;
+    }
+
+    const updatedItem = await response.json();
+
+    setInventory((currentInventory) =>
+      currentInventory.map((item) => (item.id === id ? updatedItem : item)),
+    );
+
+    setEditingId(null);
   };
 
   return (
@@ -181,7 +208,18 @@ function App() {
                       item.quantity <= item.minimumQuantity ? 'bold' : 'normal',
                   }}
                 >
-                  {item.quantity}
+                  {editingId === item.id ? (
+                    <input
+                      type="number"
+                      value={editingQuantity}
+                      onChange={(e) =>
+                        setEditingQuantity(Number(e.target.value))
+                      }
+                      style={{ width: '60px' }}
+                    />
+                  ) : (
+                    item.quantity
+                  )}
                 </td>
 
                 <td style={{ border: '1px solid black', padding: '8px' }}>
@@ -189,6 +227,41 @@ function App() {
                 </td>
 
                 <td style={{ border: '1px solid black', padding: '8px' }}>
+                  {editingId === item.id ? (
+                    <button
+                      onClick={() => saveInventoryItem(item.id)}
+                      style={{
+                        marginRight: '8px',
+                        backgroundColor: '#198754',
+                        color: 'white',
+                        border: 'none',
+                        padding: '6px 12px',
+                        cursor: 'pointer',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      Save
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        setEditingId(item.id);
+                        setEditingQuantity(item.quantity);
+                      }}
+                      style={{
+                        marginRight: '8px',
+                        backgroundColor: '#0d6efd',
+                        color: 'white',
+                        border: 'none',
+                        padding: '6px 12px',
+                        cursor: 'pointer',
+                        borderRadius: '4px',
+                      }}
+                    >
+                      Edit
+                    </button>
+                  )}
+
                   <button
                     onClick={() => deleteInventoryItem(item.id)}
                     style={{
