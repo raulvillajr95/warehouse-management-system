@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
-
-interface InventoryItem {
-  id: string;
-  name: string;
-  sku: string;
-  quantity: number;
-  location: string | null;
-  minimumQuantity: number;
-}
+import type { InventoryItem } from './types/InventoryItem';
+import {
+  getInventory,
+  createInventoryItem,
+  updateInventoryQuantity,
+  deleteInventoryItem as deleteInventoryItemApi,
+} from './services/inventoryApi';
+import InventoryForm from './components/InventoryForm';
 
 function App() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
@@ -20,41 +19,31 @@ function App() {
   const [editingQuantity, setEditingQuantity] = useState(0);
 
   useEffect(() => {
-    fetch('http://localhost:3001/inventory')
-      .then((res) => res.json())
+    getInventory()
       .then((data) => setInventory(data))
       .catch((err) => console.error(err));
   }, []);
 
   const addInventoryItem = async () => {
-    const response = await fetch('http://localhost:3001/inventory', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
+    try {
+      const newItem = await createInventoryItem({
         name,
         sku,
         quantity,
         location,
         minimumQuantity,
-      }),
-    });
+      });
 
-    if (!response.ok) {
+      setInventory((currentInventory) => [...currentInventory, newItem]);
+
+      setName('');
+      setSku('');
+      setQuantity(0);
+      setLocation('');
+      setMinimumQuantity(0);
+    } catch {
       alert('Failed to add inventory item.');
-      return;
     }
-
-    const newItem = await response.json();
-
-    setInventory([...inventory, newItem]);
-
-    setName('');
-    setSku('');
-    setQuantity(0);
-    setLocation('');
-    setMinimumQuantity(0);
   };
 
   const deleteInventoryItem = async (id: string) => {
@@ -66,98 +55,48 @@ function App() {
       return;
     }
 
-    const response = await fetch(`http://localhost:3001/inventory/${id}`, {
-      method: 'DELETE',
-    });
+    try {
+      await deleteInventoryItemApi(id);
 
-    if (!response.ok) {
+      setInventory((currentInventory) =>
+        currentInventory.filter((item) => item.id !== id),
+      );
+    } catch {
       alert('Failed to delete inventory item.');
-      return;
     }
-
-    setInventory((currentInventory) =>
-      currentInventory.filter((item) => item.id !== id),
-    );
   };
 
   const saveInventoryItem = async (id: string) => {
-    const response = await fetch(`http://localhost:3001/inventory/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        quantity: editingQuantity,
-      }),
-    });
+    try {
+      const updatedItem = await updateInventoryQuantity(id, editingQuantity);
 
-    if (!response.ok) {
+      setInventory((currentInventory) =>
+        currentInventory.map((item) => (item.id === id ? updatedItem : item)),
+      );
+
+      setEditingId(null);
+    } catch {
       alert('Failed to update inventory item.');
-      return;
     }
-
-    const updatedItem = await response.json();
-
-    setInventory((currentInventory) =>
-      currentInventory.map((item) => (item.id === id ? updatedItem : item)),
-    );
-
-    setEditingId(null);
   };
 
   return (
     <div style={{ padding: '2rem', fontFamily: 'Arial' }}>
       <h1>Warehouse Management System</h1>
 
-      <div style={{ marginBottom: '20px' }}>
-        <h2>Add Inventory Item</h2>
-
-        <input
-          type="text"
-          placeholder="Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-
-        <input
-          type="text"
-          placeholder="SKU"
-          value={sku}
-          onChange={(e) => setSku(e.target.value)}
-        />
-
-        <input
-          type="number"
-          placeholder="Quantity"
-          value={quantity}
-          onChange={(e) => setQuantity(Number(e.target.value))}
-        />
-
-        <input
-          type="text"
-          placeholder="Location"
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-        />
-
-        <input
-          type="number"
-          placeholder="Minimum Quantity"
-          value={minimumQuantity}
-          onChange={(e) => setMinimumQuantity(Number(e.target.value))}
-        />
-
-        <button
-          onClick={addInventoryItem}
-          style={{
-            marginLeft: '10px',
-            padding: '8px 16px',
-            cursor: 'pointer',
-          }}
-        >
-          Add Item
-        </button>
-      </div>
+      <InventoryForm
+        name={name}
+        sku={sku}
+        quantity={quantity}
+        location={location}
+        minimumQuantity={minimumQuantity}
+        setName={setName}
+        setSku={setSku}
+        setQuantity={setQuantity}
+        setLocation={setLocation}
+        setMinimumQuantity={setMinimumQuantity}
+        onAddItem={addInventoryItem}
+      />
 
       {inventory.length === 0 ? (
         <p>No inventory items found.</p>
